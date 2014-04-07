@@ -36,7 +36,7 @@ class IOAdapter():
     def read(self):
         lines = []
         while True:
-            c = os.read(here_sys.stdin.fileno(), 1)
+            c = os.read(here_sys.stdin.fileno(), 1).decode()
             lines.append(c)
             if '\n\r'.find(c) != -1:
                 if not self.delimiter_found:
