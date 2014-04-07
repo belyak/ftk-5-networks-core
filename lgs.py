@@ -1,19 +1,18 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-
 import sys as here_sys
 import os
-import re
+
+from utils import create_message
+import commands_definitions as commands
 
 VERSION = 0.01
 HELLO_MSG = 'Text frequency analysis server v.%s ready.\n\r' % VERSION
 
-import commands_definitions as CMD
+CODE_OK = 200
 
-LETTERS = u'АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ'\
-          u'абвгдеёжзийклмнопрстуфхцчшщъыьэюя'\
-          u'ABCDEFGHIJKLMNOPQRSTUVWXYZ'\
-          u'abcdefghijklmnopqrstuvwxyz'
+LETTERS = 'АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ'\
+          'абвгдеёжзийклмнопрстуфхцчшщъыьэюя'\
+          'ABCDEFGHIJKLMNOPQRSTUVWXYZ'\
+          'abcdefghijklmnopqrstuvwxyz'
 
 
 CURRENT = 'current'
@@ -35,10 +34,10 @@ class IOAdapter():
         self.delimiter_found = False
 
     def read(self):
-        line = []
+        lines = []
         while True:
             c = os.read(here_sys.stdin.fileno(), 1)
-            line.append(c)
+            lines.append(c)
             if '\n\r'.find(c) != -1:
                 if not self.delimiter_found:
                     if self.delimiter is None:
@@ -49,8 +48,7 @@ class IOAdapter():
                         self.delimiter = ''.join(self.delimiter)
                         self.delimiter_found = True
 
-                return ''.join(line)
-
+                return ''.join(lines)
 
     def write(self, data, line_break=True):
         here_sys.stdout.write(data)
@@ -63,6 +61,7 @@ io_stream = IOAdapter()
 
 COMMANDS = []
 
+
 def command(keyword=None):
     if keyword is None:
         return lambda a: a
@@ -74,19 +73,21 @@ def command(keyword=None):
     return wrapper
 
 
+@command(keyword=commands.CLEAR_BUFFER)
 def clear_buffer():
     GD.collected_lines = []
-    message = 'collected lines has been dropped.'
-    return message
+    msg = 'collected lines has been dropped.'
+    return create_message(CODE_OK, msg)
 
 
-@command(keyword=CMD.PUT_LINE)
+@command(keyword=commands.PUT_LINE)
 def put_line():
     GD.collected_lines.append(io_stream.read())
-    message = 'line has been collected (%d at the moment).' % len(GD.collected_lines)
-    return message
+    msg = 'line has been collected (%d at the moment).' % len(GD.collected_lines)
+    return create_message(CODE_OK, msg)
 
 
+@command(keyword=commands.CALC)
 def calc():
     data = GD.GLOBAL_DATA['current']
     words_count = 0
@@ -99,59 +100,46 @@ def calc():
                 data[w] = 1
         words_count += len(words)
 
-    message = 'Calculated (%d lines, %d words)' % (len(GD.collected_lines), words_count)
-    return message
+    msg = 'Calculated (%d lines, %d words)' % (len(GD.collected_lines), words_count)
+    return create_message(CODE_OK, msg)
 
 
+@command(keyword=commands.PRINT_STATS)
 def print_stats():
     lines = []
-    for i, v in GD.GLOBAL_DATA['current'].items():
+    for i, v, in GD.GLOBAL_DATA['current'].items():
         lines.append('%s\t%d' % (i, v))
     return '\n'.join(lines)
 
 
-@command(CMD.EXIT)
+@command(commands.EXIT)
 def close_session():
     """
-exit: closes current session
+    exit: closes current session
     """
     return 'OK. Good bye!'
 
-@command(CMD.IPYTHON)
-def ipython():
-    try:
-        from IPython import embed
-        embed()
-        return ''
-    except ImportError:
-        return 'ERR: You need to install ipython to run this command!'
 
 COMMANDS += [
-    (CMD.CLEAR_BUFFER, clear_buffer),
-    #(CMD.PUT_LINE, put_line),
-    (CMD.CALC, calc),
-    (CMD.PRINT_STATS, print_stats),
     ('ver', lambda: (str(VERSION)))
 ]
 
-COMMANDS = tuple(COMMANDS)
-
 if __name__ == '__main__':
     io_stream.write(HELLO_MSG)
+
     cmd = True
-    while cmd != CMD.EXIT:
+
+    while cmd != commands.EXIT:
         line = io_stream.read()
         for cmd, callback, in COMMANDS:
             if line.find(cmd) == 0:
                 if line.find('??') == len(cmd):
                     cmd = None
-                    msg = callback.__doc__ if callback.__doc__ is not None else 'ERR: no documentation'
-                    cleaned_msg = (''.join([l.strip() for l in msg.split('\n') if len(l.strip())>4]))
-                    io_stream.write(msg)
+                    message = callback.__doc__ if callback.__doc__ is not None else 'ERR: no documentation'
+                    cleaned_msg = (''.join([l.strip() for l in message.split('\n') if len(l.strip()) > 4]))
+                    io_stream.write(message)
                     io_stream.write('OK')
                 else:
-                    msg = callback()
-                    io_stream.write(msg)
+                    message = callback()
+                    io_stream.write(message)
                     break
-
-
