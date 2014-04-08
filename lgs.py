@@ -1,5 +1,4 @@
-import sys as here_sys
-import os
+from io_adapter import IOAdapter
 
 from utils import create_message
 import commands_definitions as commands
@@ -26,35 +25,6 @@ class GlobalData:
     current_encoding = 'utf-8'
 
 GD = GlobalData
-
-
-class IOAdapter():
-    def __init__(self):
-        self.delimiter = None
-        self.delimiter_found = False
-
-    def read(self):
-        lines = []
-        while True:
-            c = os.read(here_sys.stdin.fileno(), 1).decode()
-            lines.append(c)
-            if '\n\r'.find(c) != -1:
-                if not self.delimiter_found:
-                    if self.delimiter is None:
-                        self.delimiter = c
-                    elif len(self.delimiter):
-                        if self.delimiter != c:
-                            self.delimiter = [self.delimiter, c]
-                        self.delimiter = ''.join(self.delimiter)
-                        self.delimiter_found = True
-
-                return ''.join(lines)
-
-    def write(self, data, line_break=True):
-        here_sys.stdout.write(data)
-        if line_break and self.delimiter is not None:
-            here_sys.stdout.write(self.delimiter)
-        here_sys.stdout.flush()
 
 io_stream = IOAdapter()
 
@@ -107,9 +77,10 @@ def calc():
 @command(keyword=commands.PRINT_STATS)
 def print_stats():
     lines = []
-    for i, v, in GD.GLOBAL_DATA['current'].items():
+    current_stats = GD.GLOBAL_DATA['current']
+    for i, v, in current_stats.items():
         lines.append('%s\t%d' % (i, v))
-    return '\n'.join(lines)
+    return create_message(200, '\n'.join(lines))
 
 
 @command(commands.EXIT)
@@ -132,14 +103,9 @@ if __name__ == '__main__':
     while cmd != commands.EXIT:
         line = io_stream.read()
         for cmd, callback, in COMMANDS:
-            if line.find(cmd) == 0:
-                if line.find('??') == len(cmd):
-                    cmd = None
-                    message = callback.__doc__ if callback.__doc__ is not None else 'ERR: no documentation'
-                    cleaned_msg = (''.join([l.strip() for l in message.split('\n') if len(l.strip()) > 4]))
-                    io_stream.write(message)
-                    io_stream.write('OK')
-                else:
-                    message = callback()
-                    io_stream.write(message)
-                    break
+            bin_cmd = cmd.encode()
+            cmd_len = len(bin_cmd)
+            if line[:cmd_len] == bin_cmd:
+                message = callback()
+                io_stream.write(message)
+                break
