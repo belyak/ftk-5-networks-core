@@ -9,7 +9,7 @@ class TestCreateMessage(TestCase):
         line = 'Status OK.'
         expected_result = '200 Status OK.'
 
-        result = create_message(code, line)
+        result = create_message(code, line, as_bytes=False)
         self.assertEqual(result, expected_result)
 
     def test_create_message_multiple_lines(self):
@@ -26,5 +26,5 @@ class TestCreateMessage(TestCase):
             '200 line 3'
         ])
 
-        result = create_message(code, text)
+        result = create_message(code, text, as_bytes=False)
         self.assertEqual(expected_result, result)
