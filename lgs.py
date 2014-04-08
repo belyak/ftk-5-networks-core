@@ -4,7 +4,7 @@ from utils import create_message
 import commands_definitions as commands
 
 VERSION = 0.01
-HELLO_MSG = 'Text frequency analysis server v.%s ready.\n\r' % VERSION
+HELLO_MSG = ('Text frequency analysis server v.%s ready.\n\r' % VERSION).encode()
 
 CODE_OK = 200
 

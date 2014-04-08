@@ -11,8 +11,16 @@ class IOAdapter():
     """
     def __init__(self):
         self.__possible_delimiters = '\n\r'.encode()
+        self.__encoding = 'utf-8'
         self.delimiter = None
         self.delimiter_found = False
+
+    def set_encoding(self, encoding):
+        """
+        Устанавливает кодировку вывода в поток.
+        Вызов влияет только на консольный режим работы приложения.
+        """
+        self.__encoding = encoding
 
     def read(self):
         """
@@ -35,7 +43,11 @@ class IOAdapter():
                 return collected_bytes
 
     def write(self, data, line_break=True):
-        here_sys.stdout.write(data)
+        """
+        :type data: bytes
+        :type line_break: bool
+        """
+        here_sys.stdout.write(data.decode(self.__encoding))
         if line_break and self.delimiter is not None:
-            here_sys.stdout.write(self.delimiter)
+            here_sys.stdout.write(self.delimiter.decode(self.__encoding))
         here_sys.stdout.flush()
