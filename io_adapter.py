@@ -18,22 +18,21 @@ class IOAdapter():
         """
         считывает данные из буфеа ввода/вывода до повления символа переноса строки,
         затем возвращает последовательность байт, исключая перенос строки.
+        :rtype: bytes
         """
-        collected_bytes = []
+        collected_bytes = b''
         while True:
             in_byte = os.read(here_sys.stdin.fileno(), 1)
-            collected_bytes.append(in_byte)
+            collected_bytes += in_byte
             if in_byte in self.__possible_delimiters:
                 if not self.delimiter_found:
                     if self.delimiter is None:
                         self.delimiter = in_byte
                     elif len(self.delimiter):
                         if self.delimiter != in_byte:
-                            self.delimiter = [self.delimiter, in_byte]
-                        self.delimiter = ''.join(self.delimiter)
+                            self.delimiter = self.delimiter + in_byte
                         self.delimiter_found = True
-
-                return ''.join(collected_bytes)
+                return collected_bytes
 
     def write(self, data, line_break=True):
         here_sys.stdout.write(data)

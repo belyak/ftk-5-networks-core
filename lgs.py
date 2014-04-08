@@ -103,14 +103,9 @@ if __name__ == '__main__':
     while cmd != commands.EXIT:
         line = io_stream.read()
         for cmd, callback, in COMMANDS:
-            if line.find(cmd) == 0:
-                if line.find('??') == len(cmd):
-                    cmd = None
-                    message = callback.__doc__ if callback.__doc__ is not None else 'ERR: no documentation'
-                    cleaned_msg = (''.join([l.strip() for l in message.split('\n') if len(l.strip()) > 4]))
-                    io_stream.write(message)
-                    io_stream.write('OK')
-                else:
-                    message = callback()
-                    io_stream.write(message)
-                    break
+            bin_cmd = cmd.encode()
+            cmd_len = len(bin_cmd)
+            if line[:cmd_len] == bin_cmd:
+                message = callback()
+                io_stream.write(message)
+                break
