@@ -12,9 +12,9 @@ class StatisticsNotFound(KeyError):
     pass
 
 
-class Statistics():
+class PersistentStatistics():
     """
-    Класс для работы с частотной статистикой текстов.
+    Базовый класс для сохранения статистики
     """
 
     def __init__(self, name, data=None):
@@ -36,7 +36,7 @@ class Statistics():
         :param name: имя статистики
         :type name: str
         :raises: StatisticsNotFound
-        :rtype: Statistics
+        :rtype: PersistentStatistics
         """
         raise NotImplementedError()
 
@@ -67,7 +67,10 @@ def statistics_name_to_filename(name):
     return os.path.join(settings.DATA_DIR, filename)
 
 
-class FileStatistics(Statistics):
+class FilePersistentStatistics(PersistentStatistics):
+    """
+    Реализация сохранения статистике в файловой системе
+    """
     @classmethod
     def load(cls, name):
         filename = statistics_name_to_filename(name)
@@ -79,7 +82,7 @@ class FileStatistics(Statistics):
 
         data = json.loads(contents)
 
-        return Statistics(name, data)
+        return PersistentStatistics(name, data)
 
     def save(self, name=None):
         if name is not None:
