@@ -26,7 +26,7 @@ class PersistentStatistics():
         :type data: dict or None
         """
         self._name = name
-        self._data = data if data is not None else {}
+        self.data = data if data is not None else {}
 
     @classmethod
     def load(cls, name):
@@ -50,12 +50,6 @@ class PersistentStatistics():
         :type name: str or None
         """
         raise NotImplementedError()
-
-    def __setitem__(self, key, value):
-        self._data[key] = value
-
-    def get(self):
-        return self._data
 
 
 def statistics_name_to_filename(name):
@@ -88,6 +82,8 @@ class FilePersistentStatistics(PersistentStatistics):
         if name is not None:
             self._name = name
         filename = statistics_name_to_filename(self._name)
-        contents = json.dumps(self._data, ensure_ascii=False)
+        contents = json.dumps(self.data, ensure_ascii=False)
         with open(filename, 'w') as f:
             f.write(contents)
+
+        return True
