@@ -57,6 +57,23 @@ def put_line(line_without_command, *args, **kwargs):
     return create_message(CODE_OK, msg)
 
 
+@command(keyword=commands.PUT_TEXT)
+def put_text(line_without_command, *args, **kwargs):
+    separator = line_without_command
+    lines_collected = 0
+    last_line = False
+    while not last_line:
+        in_line = io_stream.read()
+        separator_position = in_line.find(separator)
+        if separator_position != -1:
+            in_line = in_line[:separator_position]
+            last_line = True
+        GD.collected_lines.append(in_line)
+        lines_collected += 1
+    msg = '%d lines has been collected (%d total)' % (lines_collected, len(GD.collected_lines))
+    return create_message(CODE_OK, msg)
+
+
 @command(keyword=commands.CALC)
 def calc(*args, **kwargs):
     data = GD.GLOBAL_DATA['current']
@@ -81,17 +98,17 @@ def print_stats(*args, **kwargs):
     """:type: dict"""
     for i, v, in current_stats.items():
         lines.append('%s %d' % (i, v))
-    return create_message(200, '\n'.join(lines))
+    return create_message(CODE_OK, '\n'.join(lines))
 
 
 @command(commands.EXIT)
 def close_session(*args, **kwargs):
-    return create_message(200, 'OK. Good bye!')
+    return create_message(CODE_OK, 'OK. Good bye!')
 
 
 @command(commands.VERSION)
 def get_version(*args, **kwargs):
-    return create_message(200, str(VERSION))
+    return create_message(CODE_OK, str(VERSION))
 
 if __name__ == '__main__':
     io_stream.write(HELLO_MSG)
@@ -104,6 +121,6 @@ if __name__ == '__main__':
             bin_cmd = cmd.encode()
             cmd_len = len(bin_cmd)
             if line[:cmd_len] == bin_cmd:
-                message = callback(line_without_command=line[cmd_len + 1:])
+                message = callback(line_without_command=line[cmd_len + 1:-1])
                 io_stream.write(message)
                 break
