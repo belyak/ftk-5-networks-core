@@ -1,7 +1,7 @@
 from unittest import TestCase
 
 import uuid
-from statistics import FileStatistics, StatisticsNotFound
+from persistent_statistics import FilePersistentStatistics, StatisticsNotFound
 
 TEST_DATA = {
     'GREAT': 1,
@@ -25,15 +25,15 @@ TEST_DATA = {
 }
 
 
-class TestFileStatistics(TestCase):
+class TestFilePersistentStatistics(TestCase):
     def test_save_and_load_consistency(self):
 
         name = 'test_statistics'
 
-        statistics = FileStatistics(name=name, data=TEST_DATA)
+        statistics = FilePersistentStatistics(name=name, data=TEST_DATA)
         statistics.save()
 
-        loaded_statistics = FileStatistics.load(name)
+        loaded_statistics = FilePersistentStatistics.load(name)
 
         loaded_data = loaded_statistics.get()
 
@@ -45,4 +45,4 @@ class TestFileStatistics(TestCase):
         # очевидно, что есть некоторая вероятность, что такой файл будет существовать, но мы ей пренебрежем.
         unique_name = uuid.uuid4().hex
 
-        self.assertRaises(StatisticsNotFound, FileStatistics.load, name=unique_name)
+        self.assertRaises(StatisticsNotFound, FilePersistentStatistics.load, name=unique_name)
