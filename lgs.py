@@ -11,6 +11,19 @@ HELLO_MSG = ('Text frequency analysis server v.%s ready.\n\r' % VERSION).encode(
 CODE_OK = 200
 CODE_NOT_FOUND = 404
 
+MSG_PL_LINE_HAS_BEEN_COLLECTED = 'line has been collected (%d at the moment).'
+MSG_PT_TEXT_HAS_BEEN_COLLECTED = '%d lines has been collected (%d total)'
+
+MSG_ENC_ENCODING_HAS_BEEN_SET = 'Encoding has been set to "%s"'
+ERR_ENCODING_NOT_FOUND = 'encoding "%s" not found!'
+
+MSG_CALCULATED_LINES_WORDS = 'Calculated (%d lines, %d words)'
+
+MSG_STATISTICS_HAS_BEEN_LOADED = 'Statistics "%s" has been loaded.'
+ERR_STATISTICS_NOT_FOUND = 'Statistics "%s" not found!'
+
+MSG_STATISTICS_HAS_BEEN_SAVED = 'Statistics "%s" has been saved'
+
 
 class GlobalData:
     current_encoding = 'utf-8'
@@ -52,7 +65,7 @@ def put_line(line_without_command, *args, **kwargs):
     :type line_without_command: bytes
     """
     GD.statistics.put_line(line_without_command.decode(GD.current_encoding))
-    msg = 'line has been collected (%d at the moment).' % GD.statistics.lines_count
+    msg = MSG_PL_LINE_HAS_BEEN_COLLECTED % GD.statistics.lines_count
     return create_message(CODE_OK, msg)
 
 
@@ -69,7 +82,7 @@ def put_text(line_without_command, *args, **kwargs):
             last_line = True
         GD.statistics.put_line(in_line.decode(GD.current_encoding))
         lines_collected += 1
-    msg = '%d lines has been collected (%d total)' % (lines_collected, GD.statistics.lines_count)
+    msg = MSG_PT_TEXT_HAS_BEEN_COLLECTED % (lines_collected, GD.statistics.lines_count)
     return create_message(CODE_OK, msg)
 
 ###
@@ -80,7 +93,7 @@ def put_text(line_without_command, *args, **kwargs):
 @command(keyword=commands.CALC)
 def calc(*args, **kwargs):
     GD.statistics.calc()
-    msg = 'Calculated (%d lines, %d words)' % (GD.statistics.lines_count, GD.statistics.words_count)
+    msg = MSG_CALCULATED_LINES_WORDS % (GD.statistics.lines_count, GD.statistics.words_count)
     return create_message(CODE_OK, msg)
 
 
@@ -100,24 +113,26 @@ def print_stats(*args, **kwargs):
 
 @command(keyword=commands.LOAD)
 def load_statistics(line_without_command, *args, **kwargs):
-    result = GD.statistics.load(name=line_without_command.decode())
+    statistics_name = line_without_command.decode()
+    result = GD.statistics.load(name=statistics_name)
 
     if result:
         code = CODE_OK
-        msg = 'Statistics loaded'
+        msg = MSG_STATISTICS_HAS_BEEN_LOADED % statistics_name
     else:
         code = CODE_NOT_FOUND
-        msg = 'Statistics not found'
+        msg = ERR_STATISTICS_NOT_FOUND % statistics_name
 
     return create_message(code, msg)
 
 
 @command(keyword=commands.STORE)
 def store_statistics(line_without_command, *args, **kwargs):
-    result = GD.statistics.save(name=line_without_command.decode())
+    statistics_name = line_without_command.decode()
+    result = GD.statistics.save(name=statistics_name)
     if result:
         code = CODE_OK
-        msg = 'Statistics has been saved'
+        msg = MSG_STATISTICS_HAS_BEEN_SAVED % statistics_name
     else:
         raise NotImplementedError('False Statistics.save() result handling is not implemented yet!')
 
@@ -125,8 +140,21 @@ def store_statistics(line_without_command, *args, **kwargs):
 
 
 ###
-### Служебные команды - завершение сеанса и получение версии сервера
+### Служебные команды - завершение сеанса, получение версии сервера, установка кодировки текста.
 ###
+
+
+@command(keyword=commands.ENCODING)
+def set_encoding(line_without_command, *args, **kwargs):
+    encoding_name = line_without_command.decode()
+    try:
+        b'ABC'.decode(encoding=encoding_name)
+    except LookupError:
+        return create_message(CODE_NOT_FOUND, ERR_ENCODING_NOT_FOUND)
+
+    GD.current_encoding = encoding_name
+
+    return create_message(CODE_OK, 'Encoding has been set to "%s' % encoding_name)
 
 
 @command(commands.EXIT)
