@@ -1,4 +1,5 @@
 from unittest import TestCase
+from persistent_statistics import FilePersistentStatistics
 
 from statistics import Statistics
 from tests.tst_data import TEST_TEXT, TEST_DATA
@@ -6,7 +7,7 @@ from tests.tst_data import TEST_TEXT, TEST_DATA
 
 class TestStatistics(TestCase):
     def setUp(self):
-        self.statistics = Statistics()
+        self.statistics = Statistics(storage=FilePersistentStatistics('test'))
 
     def test_lines_count(self):
 

@@ -1,4 +1,6 @@
 from io_adapter import IOAdapter
+from persistent_statistics import FilePersistentStatistics
+from statistics import Statistics
 
 from utils import create_message
 import commands_definitions as commands
@@ -7,22 +9,12 @@ VERSION = 0.01
 HELLO_MSG = ('Text frequency analysis server v.%s ready.\n\r' % VERSION).encode()
 
 CODE_OK = 200
-
-LETTERS = 'АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ'\
-          'абвгдеёжзийклмнопрстуфхцчшщъыьэюя'\
-          'ABCDEFGHIJKLMNOPQRSTUVWXYZ'\
-          'abcdefghijklmnopqrstuvwxyz'
-
-
-CURRENT = 'current'
+CODE_NOT_FOUND = 404
 
 
 class GlobalData:
-    GLOBAL_DATA = {
-        CURRENT: {}
-    }
-    collected_lines = []
     current_encoding = 'utf-8'
+    statistics = Statistics(storage=FilePersistentStatistics(name='current'))
 
 GD = GlobalData
 
@@ -43,17 +35,24 @@ def command(keyword=None):
     return wrapper
 
 
+###
+### Команды работы с буфером текста - добавление строки, текста, очистка
+###
+
 @command(keyword=commands.CLEAR_BUFFER)
 def clear_buffer(*args, **kwargs):
-    GD.collected_lines = []
+    GD.statistics.clear_buffer()
     msg = 'collected lines has been dropped.'
     return create_message(CODE_OK, msg)
 
 
 @command(keyword=commands.PUT_LINE)
 def put_line(line_without_command, *args, **kwargs):
-    GD.collected_lines.append(line_without_command)
-    msg = 'line has been collected (%d at the moment).' % len(GD.collected_lines)
+    """
+    :type line_without_command: bytes
+    """
+    GD.statistics.put_line(line_without_command.decode(GD.current_encoding))
+    msg = 'line has been collected (%d at the moment).' % GD.statistics.lines_count
     return create_message(CODE_OK, msg)
 
 
@@ -68,37 +67,66 @@ def put_text(line_without_command, *args, **kwargs):
         if separator_position != -1:
             in_line = in_line[:separator_position]
             last_line = True
-        GD.collected_lines.append(in_line)
+        GD.statistics.put_line(in_line.decode(GD.current_encoding))
         lines_collected += 1
-    msg = '%d lines has been collected (%d total)' % (lines_collected, len(GD.collected_lines))
+    msg = '%d lines has been collected (%d total)' % (lines_collected, GD.statistics.lines_count)
     return create_message(CODE_OK, msg)
+
+###
+### Команды расчета и получения статистики
+###
 
 
 @command(keyword=commands.CALC)
 def calc(*args, **kwargs):
-    data = GD.GLOBAL_DATA['current']
-    words_count = 0
-    for l in GD.collected_lines:
-        words = l.decode(GD.current_encoding).split()
-        for w in [w.upper() for w in words]:
-            if w in data.keys():
-                data[w] += 1
-            else:
-                data[w] = 1
-        words_count += len(words)
-
-    msg = 'Calculated (%d lines, %d words)' % (len(GD.collected_lines), words_count)
+    GD.statistics.calc()
+    msg = 'Calculated (%d lines, %d words)' % (GD.statistics.lines_count, GD.statistics.words_count)
     return create_message(CODE_OK, msg)
 
 
 @command(keyword=commands.PRINT_STATS)
 def print_stats(*args, **kwargs):
     lines = ['STATISTICS']
-    current_stats = GD.GLOBAL_DATA['current']
+    current_stats = GD.statistics.get()
     """:type: dict"""
     for i, v, in current_stats.items():
         lines.append('%s %d' % (i, v))
     return create_message(CODE_OK, '\n'.join(lines))
+
+###
+### Команды сохранения и загрузки статистики
+###
+
+
+@command(keyword=commands.LOAD)
+def load_statistics(line_without_command, *args, **kwargs):
+    result = GD.statistics.load(name=line_without_command.decode())
+
+    if result:
+        code = CODE_OK
+        msg = 'Statistics loaded'
+    else:
+        code = CODE_NOT_FOUND
+        msg = 'Statistics not found'
+
+    return create_message(code, msg)
+
+
+@command(keyword=commands.STORE)
+def store_statistics(line_without_command, *args, **kwargs):
+    result = GD.statistics.save(name=line_without_command.decode())
+    if result:
+        code = CODE_OK
+        msg = 'Statistics has been saved'
+    else:
+        raise NotImplementedError('False Statistics.save() result handling is not implemented yet!')
+
+    return create_message(code, msg)
+
+
+###
+### Служебные команды - завершение сеанса и получение версии сервера
+###
 
 
 @command(commands.EXIT)

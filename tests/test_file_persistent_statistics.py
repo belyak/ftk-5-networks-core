@@ -16,7 +16,7 @@ class TestFilePersistentStatistics(TestCase):
 
         loaded_statistics = FilePersistentStatistics.load(name)
 
-        loaded_data = loaded_statistics.get()
+        loaded_data = loaded_statistics.data
 
         self.assertEqual(loaded_data, TEST_DATA)
 
