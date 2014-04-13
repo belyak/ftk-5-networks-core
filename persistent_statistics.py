@@ -5,7 +5,7 @@ import hashlib
 import settings
 
 
-class StatisticsNotFound(KeyError):
+class StatisticsNotFound(LookupError):
     """
     Исключение, порождаемое при попытке получить несуществующий объект типа Statistics
     """
