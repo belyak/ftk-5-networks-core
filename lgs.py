@@ -9,6 +9,7 @@ VERSION = 0.01
 HELLO_MSG = ('Text frequency analysis server v.%s ready.\n\r' % VERSION).encode()
 
 CODE_OK = 200
+CODE_BAD_DATA = 400
 CODE_NOT_FOUND = 404
 
 MSG_PL_LINE_HAS_BEEN_COLLECTED = 'line has been collected (%d at the moment).'
@@ -23,6 +24,8 @@ MSG_STATISTICS_HAS_BEEN_LOADED = 'Statistics "%s" has been loaded.'
 ERR_STATISTICS_NOT_FOUND = 'Statistics "%s" not found!'
 
 MSG_STATISTICS_HAS_BEEN_SAVED = 'Statistics "%s" has been saved'
+
+ERR_COMMAND_NOT_RECOGNIZED = 'Command cannot be recognized!'
 
 
 class GlobalData:
@@ -169,7 +172,7 @@ def get_version(*args, **kwargs):
 if __name__ == '__main__':
     io_stream.write(HELLO_MSG)
 
-    cmd = True
+    cmd = None
 
     while cmd != commands.EXIT:
         line = io_stream.read()
@@ -180,3 +183,7 @@ if __name__ == '__main__':
                 message = callback(line_without_command=line[cmd_len + 1:-1])
                 io_stream.write(message)
                 break
+        else:
+            msg = ERR_COMMAND_NOT_RECOGNIZED
+            message = create_message(CODE_BAD_DATA, msg)
+            io_stream.write(message)
