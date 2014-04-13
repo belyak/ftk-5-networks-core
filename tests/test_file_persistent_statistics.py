@@ -3,26 +3,7 @@ from unittest import TestCase
 import uuid
 from persistent_statistics import FilePersistentStatistics, StatisticsNotFound
 
-TEST_DATA = {
-    'GREAT': 1,
-    'HUMPTY': 3,
-    'SAT': 1,
-    'THE': 3,
-    'MAN': 1,
-    'HAD': 1,
-    'FALL': 1,
-    'WALL': 1,
-    'ON': 1,
-    'HORSES': 1,
-    'ALL': 2,
-    'TOGETHER': 1,
-    'PUT': 1,
-    'DUMPTY': 2,
-    'KING': 2,
-    'A': 1,
-    'AND': 1,
-    'AGAIN': 1
-}
+from tests.tst_data import TEST_DATA
 
 
 class TestFilePersistentStatistics(TestCase):
