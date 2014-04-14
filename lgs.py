@@ -1,4 +1,4 @@
-from io_adapter import IOAdapter
+from io_adapter import IOAdapter, SocketAdapter
 from persistent_statistics import FilePersistentStatistics
 from statistics import Statistics
 
@@ -33,9 +33,6 @@ class GlobalData:
     statistics = Statistics(storage=FilePersistentStatistics(name='current'))
 
 GD = GlobalData
-
-io_stream = IOAdapter()
-
 
 COMMANDS = []
 
@@ -172,30 +169,45 @@ def get_version(*args, **kwargs):
 
 def io_loop(io_adapter):
     """
-    :type io_adapter: IOAdapter
+    :type io_adapter: BaseIoAdapter
     """
     # начало сессии, выведем приветстие
-    io_stream.write(HELLO_MSG)
+    io_adapter.write(HELLO_MSG)
 
     cmd = None
 
     while cmd != commands.EXIT:
         # читаем одну строку из входящих данных:
-        line = io_stream.read()
+        line = io_adapter.read()
         # перебираем все зарегистрированные команды:
         for cmd, callback, in COMMANDS:
             bin_cmd = cmd.encode()
             cmd_len = len(bin_cmd)
             if line[:cmd_len] == bin_cmd:
-                message = callback(line_without_command=line[cmd_len + 1:-1])
-                io_stream.write(message)
+                message = callback(line_without_command=line[cmd_len + 1:io_adapter.delimiter_slice_start])
+                io_adapter.write(message)
                 break
         else:
             # 'это условие выполниться только если цикл завершится нормально, т.е. без break
             message = create_message(CODE_BAD_DATA, ERR_COMMAND_NOT_RECOGNIZED)
-            io_stream.write(message)
+            io_adapter.write(message)
 
 
 if __name__ == '__main__':
 
-    io_loop(io_stream)
+    MODE_XINET = 'xinet'
+    MODE_STANDALONE = 'standalone'
+
+    # mode = MODE_XINET
+    mode = MODE_STANDALONE
+
+    if mode == MODE_XINET:
+        # режим работы под управлением xinetd - ioloop запускается один раз с консольным вводом/выводом
+        io_stream = IOAdapter()
+        io_loop(io_stream)
+
+    elif mode == MODE_STANDALONE:
+
+        io_stream = SocketAdapter.accept_connection_and_get_io_adapter()
+
+        io_loop(io_stream)
