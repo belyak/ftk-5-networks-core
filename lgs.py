@@ -184,6 +184,5 @@ if __name__ == '__main__':
                 io_stream.write(message)
                 break
         else:
-            msg = ERR_COMMAND_NOT_RECOGNIZED
-            message = create_message(CODE_BAD_DATA, msg)
+            message = create_message(CODE_BAD_DATA, ERR_COMMAND_NOT_RECOGNIZED)
             io_stream.write(message)
