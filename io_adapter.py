@@ -103,7 +103,7 @@ class SocketAdapter(BaseIoAdapter):
     @classmethod
     def initialize_server_socket(cls):
         cls._server_socket = socket.socket()
-        hostname, port = socket.gethostname(), 8013
+        hostname, port = socket.gethostname(), 8014
         cls._server_socket.bind((hostname, port))
         print('Bound to %s at %d' % (hostname, port))
         cls._server_socket.listen(MAX_CONNECTIONS)

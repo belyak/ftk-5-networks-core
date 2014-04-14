@@ -178,7 +178,7 @@ def io_loop(io_adapter):
 
     while cmd != commands.EXIT:
         # читаем одну строку из входящих данных:
-        line = io_adapter.read()
+        line = (yield io_adapter.read)
         # перебираем все зарегистрированные команды:
         for cmd, callback, in COMMANDS:
             bin_cmd = cmd.encode()
@@ -204,10 +204,24 @@ if __name__ == '__main__':
     if mode == MODE_XINET:
         # режим работы под управлением xinetd - ioloop запускается один раз с консольным вводом/выводом
         io_stream = ConsoleIOAdapter()
-        io_loop(io_stream)
+        started_io_loop = io_loop(io_stream)
+        try:
+            data = None
+            while True:
+                blocking_read_callback = started_io_loop.send(data)
+                data = blocking_read_callback()
+        except StopIteration:
+            started_io_loop.close()
 
     elif mode == MODE_STANDALONE:
 
         io_stream = SocketAdapter.accept_connection_and_get_io_adapter()
 
-        io_loop(io_stream)
+        started_io_loop = io_loop(io_stream)
+        try:
+            data = None
+            while True:
+                blocking_read_callback = started_io_loop.send(data)
+                data = blocking_read_callback()
+        except StopIteration:
+            started_io_loop.close()
