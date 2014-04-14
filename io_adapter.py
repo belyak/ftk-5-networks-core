@@ -44,7 +44,7 @@ class BaseIoAdapter():
         raise NotImplementedError()
 
 
-class IOAdapter(BaseIoAdapter):
+class ConsoleIOAdapter(BaseIoAdapter):
     """
     Адаптер ввода-вывода
 

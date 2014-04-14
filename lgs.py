@@ -1,4 +1,4 @@
-from io_adapter import IOAdapter, SocketAdapter
+from io_adapter import ConsoleIOAdapter, SocketAdapter
 from persistent_statistics import FilePersistentStatistics
 from statistics import Statistics
 
@@ -203,7 +203,7 @@ if __name__ == '__main__':
 
     if mode == MODE_XINET:
         # режим работы под управлением xinetd - ioloop запускается один раз с консольным вводом/выводом
-        io_stream = IOAdapter()
+        io_stream = ConsoleIOAdapter()
         io_loop(io_stream)
 
     elif mode == MODE_STANDALONE:
