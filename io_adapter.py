@@ -32,7 +32,7 @@ class BaseIoAdapter():
         collected_bytes = b''
 
         while collected_bytes[self.delimiter_slice_start:] != self._binary_lines_delimiter:
-            in_byte = self._read_byte()
+            in_byte = yield self._read_byte
             collected_bytes += in_byte
 
         return collected_bytes
@@ -103,7 +103,7 @@ class SocketAdapter(BaseIoAdapter):
     @classmethod
     def initialize_server_socket(cls):
         cls._server_socket = socket.socket()
-        hostname, port = socket.gethostname(), 8014
+        hostname, port = socket.gethostname(), 8018
         cls._server_socket.bind((hostname, port))
         print('Bound to %s at %d' % (hostname, port))
         cls._server_socket.listen(MAX_CONNECTIONS)

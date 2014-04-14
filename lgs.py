@@ -178,7 +178,7 @@ def user_session(io_adapter):
 
     while cmd != commands.EXIT:
         # читаем одну строку из входящих данных:
-        line = (yield io_adapter.read)
+        line = yield from io_adapter.read()
         # перебираем все зарегистрированные команды:
         for cmd, callback, in COMMANDS:
             bin_cmd = cmd.encode()
@@ -213,7 +213,6 @@ def standalone_io_loop():
     Цикл взаимоействия с пользователем в режиме серверного сокета.
     """
     # TODO: использовать неблокирующее чтение из множества сокетов
-    # TODO: атомизировать блокирующий вызов с одной строки до байта
     io_stream = SocketAdapter.accept_connection_and_get_io_adapter()
 
     running_user_session = user_session(io_stream)
