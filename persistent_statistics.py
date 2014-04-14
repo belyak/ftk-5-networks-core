@@ -76,7 +76,7 @@ class FilePersistentStatistics(PersistentStatistics):
 
         data = json.loads(contents)
 
-        return PersistentStatistics(name, data)
+        return FilePersistentStatistics(name, data)
 
     def save(self, name=None):
         if name is not None:
