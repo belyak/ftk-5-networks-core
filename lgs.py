@@ -169,13 +169,20 @@ def close_session(*args, **kwargs):
 def get_version(*args, **kwargs):
     return create_message(CODE_OK, str(VERSION))
 
-if __name__ == '__main__':
+
+def io_loop(io_adapter):
+    """
+    :type io_adapter: IOAdapter
+    """
+    # начало сессии, выведем приветстие
     io_stream.write(HELLO_MSG)
 
     cmd = None
 
     while cmd != commands.EXIT:
+        # читаем одну строку из входящих данных:
         line = io_stream.read()
+        # перебираем все зарегистрированные команды:
         for cmd, callback, in COMMANDS:
             bin_cmd = cmd.encode()
             cmd_len = len(bin_cmd)
@@ -184,5 +191,11 @@ if __name__ == '__main__':
                 io_stream.write(message)
                 break
         else:
+            # 'это условие выполниться только если цикл завершится нормально, т.е. без break
             message = create_message(CODE_BAD_DATA, ERR_COMMAND_NOT_RECOGNIZED)
             io_stream.write(message)
+
+
+if __name__ == '__main__':
+
+    io_loop(io_stream)
