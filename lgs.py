@@ -167,7 +167,7 @@ def get_version(*args, **kwargs):
     return create_message(CODE_OK, str(VERSION))
 
 
-def io_loop(io_adapter):
+def user_session(io_adapter):
     """
     :type io_adapter: BaseIoAdapter
     """
@@ -193,6 +193,39 @@ def io_loop(io_adapter):
             io_adapter.write(message)
 
 
+def xinetd_io_loop():
+    """
+    Цикл взаимодейстивия с пользователем в режиме xinetd сервиса
+    """
+    io_stream = ConsoleIOAdapter()
+    running_user_session = user_session(io_stream)
+    try:
+        data = None
+        while True:
+            blocking_read_callback = running_user_session.send(data)
+            data = blocking_read_callback()
+    except StopIteration:
+        running_user_session.close()
+
+
+def standalone_io_loop():
+    """
+    Цикл взаимоействия с пользователем в режиме серверного сокета.
+    """
+    # TODO: использовать неблокирующее чтение из множества сокетов
+    # TODO: атомизировать блокирующий вызов с одной строки до байта
+    io_stream = SocketAdapter.accept_connection_and_get_io_adapter()
+
+    running_user_session = user_session(io_stream)
+    try:
+        data = None
+        while True:
+            blocking_read_callback = running_user_session.send(data)
+            data = blocking_read_callback()
+    except StopIteration:
+        running_user_session.close()
+
+
 if __name__ == '__main__':
 
     MODE_XINET = 'xinet'
@@ -203,25 +236,7 @@ if __name__ == '__main__':
 
     if mode == MODE_XINET:
         # режим работы под управлением xinetd - ioloop запускается один раз с консольным вводом/выводом
-        io_stream = ConsoleIOAdapter()
-        started_io_loop = io_loop(io_stream)
-        try:
-            data = None
-            while True:
-                blocking_read_callback = started_io_loop.send(data)
-                data = blocking_read_callback()
-        except StopIteration:
-            started_io_loop.close()
+        xinetd_io_loop()
 
     elif mode == MODE_STANDALONE:
-
-        io_stream = SocketAdapter.accept_connection_and_get_io_adapter()
-
-        started_io_loop = io_loop(io_stream)
-        try:
-            data = None
-            while True:
-                blocking_read_callback = started_io_loop.send(data)
-                data = blocking_read_callback()
-        except StopIteration:
-            started_io_loop.close()
+        standalone_io_loop()
