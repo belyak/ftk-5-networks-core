@@ -123,7 +123,7 @@ class SocketAdapter(BaseIoAdapter):
         """
         cls._server_socket = socket.socket()
         cls._server_socket.setblocking(0)
-        hostname, port = socket.gethostname(), 8022
+        hostname, port = socket.gethostname(), 8020
         cls._server_socket.bind((hostname, port))
         print('Bound to %s at %d' % (hostname, port))
         cls._server_socket.listen(MAX_CONNECTIONS)

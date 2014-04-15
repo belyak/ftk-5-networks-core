@@ -30,10 +30,10 @@ def user_session(io_adapter):
                     message = callback(line_without_command)
                 else:
                     running_instance = callback()
-                    need_more_lines = running_instance.append_line(line_without_command)
+                    need_more_lines = running_instance.process_line(line_without_command)
                     while need_more_lines:
                         line = yield from io_adapter.read()
-                        need_more_lines = running_instance.append_line(line)
+                        need_more_lines = running_instance.process_line(line)
                     message = running_instance.get_message()
                 io_adapter.write(message)
                 break

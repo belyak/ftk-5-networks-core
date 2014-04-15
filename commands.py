@@ -38,6 +38,27 @@ def command(keyword=None, multi_line=False):
 
     return wrapper
 
+
+class StatefulCommand():
+    """
+    Команда требующая многострочного ввода и сохраняющая состояние
+    """
+
+    def process_line(self, line):
+        """
+        Обработка одной строки входных данных.
+        :returns: требуется повторный вызов process_line со следующей строкой или нет
+        :rtype: bool
+        """
+        raise NotImplementedError
+
+    def get_message(self):
+        """
+        Получение ответа команды по завершении обработки
+        """
+        raise NotImplementedError
+
+
 ###
 ### Команды работы с буфером текста - добавление строки, текста, очистка
 ###
@@ -61,36 +82,38 @@ def put_line(line_without_command, *args, **kwargs):
 
 
 @command(keyword=commands.PUT_TEXT, multi_line=True)
-class PutText():
+class PutText(StatefulCommand):
+
     def __init__(self):
         self._lines_collected = 0
         self._separator = None
 
-    def __append_line(self, line):
+    def process_line(self, line):
+
+        if self._lines_collected == 0:
+            self._separator = line
+            self._append_line(line)
+            return True
+        else:
+            separator_position = line.find(self._separator)
+            if separator_position != -1:
+                self._append_line(line[:separator_position])
+                return False
+            else:
+                self._append_line(line)
+                return True
+
+    def get_message(self):
+        msg = MSG_PT_TEXT_HAS_BEEN_COLLECTED % (self._lines_collected, GD.statistics.lines_count)
+        return create_message(CODE_OK, msg)
+
+    def _append_line(self, line):
         """
         :type line: bytes
         """
         GD.statistics.put_line(line.decode(GD.current_encoding))
         self._lines_collected += 1
 
-    def append_line(self, line):
-
-        if self._lines_collected == 0:
-            self._separator = line
-            self.__append_line(line)
-            return True
-        else:
-            separator_position = line.find(self._separator)
-            if separator_position != -1:
-                self.__append_line(line[:separator_position])
-                return False
-            else:
-                self.__append_line(line)
-                return True
-
-    def get_message(self):
-        msg = MSG_PT_TEXT_HAS_BEEN_COLLECTED % (self._lines_collected, GD.statistics.lines_count)
-        return create_message(CODE_OK, msg)
 
 ###
 ### Команды расчета и получения статистики
