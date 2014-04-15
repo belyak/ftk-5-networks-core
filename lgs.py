@@ -25,7 +25,16 @@ def user_session(io_adapter):
             bin_cmd = cmd.encode()
             cmd_len = len(bin_cmd)
             if line[:cmd_len] == bin_cmd:
-                message = callback(line_without_command=line[cmd_len + 1:io_adapter.delimiter_slice_start])
+                line_without_command = line[cmd_len + 1:io_adapter.delimiter_slice_start]
+                if not callback.multi_line:
+                    message = callback(line_without_command)
+                else:
+                    running_instance = callback()
+                    need_more_lines = running_instance.append_line(line_without_command)
+                    while need_more_lines:
+                        line = yield from io_adapter.read()
+                        need_more_lines = running_instance.append_line(line)
+                    message = running_instance.get_message()
                 io_adapter.write(message)
                 break
         else:

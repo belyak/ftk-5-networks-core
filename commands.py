@@ -22,7 +22,7 @@ class GD:
         cls.statistics = context.statistics
 
 
-def command(keyword=None):
+def command(keyword=None, multi_line=False):
     """
     Декоратор, регистрирует функцию в качетве обработчика команды.
     :param keyword: команда
@@ -33,6 +33,7 @@ def command(keyword=None):
 
     def wrapper(fn):
         COMMANDS.append((keyword, fn))
+        setattr(fn, 'multi_line', multi_line)
         return fn
 
     return wrapper
@@ -59,21 +60,37 @@ def put_line(line_without_command, *args, **kwargs):
     return create_message(CODE_OK, msg)
 
 
-@command(keyword=commands.PUT_TEXT)
-def put_text(line_without_command, *args, **kwargs):
-    separator = line_without_command
-    lines_collected = 0
-    last_line = False
-    while not last_line:
-        in_line = io_stream.read()
-        separator_position = in_line.find(separator)
-        if separator_position != -1:
-            in_line = in_line[:separator_position]
-            last_line = True
-        GD.statistics.put_line(in_line.decode(GD.current_encoding))
-        lines_collected += 1
-    msg = MSG_PT_TEXT_HAS_BEEN_COLLECTED % (lines_collected, GD.statistics.lines_count)
-    return create_message(CODE_OK, msg)
+@command(keyword=commands.PUT_TEXT, multi_line=True)
+class PutText():
+    def __init__(self):
+        self._lines_collected = 0
+        self._separator = None
+
+    def __append_line(self, line):
+        """
+        :type line: bytes
+        """
+        GD.statistics.put_line(line.decode(GD.current_encoding))
+        self._lines_collected += 1
+
+    def append_line(self, line):
+
+        if self._lines_collected == 0:
+            self._separator = line
+            self.__append_line(line)
+            return True
+        else:
+            separator_position = line.find(self._separator)
+            if separator_position != -1:
+                self.__append_line(line[:separator_position])
+                return False
+            else:
+                self.__append_line(line)
+                return True
+
+    def get_message(self):
+        msg = MSG_PT_TEXT_HAS_BEEN_COLLECTED % (self._lines_collected, GD.statistics.lines_count)
+        return create_message(CODE_OK, msg)
 
 ###
 ### Команды расчета и получения статистики
