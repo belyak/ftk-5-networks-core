@@ -37,11 +37,24 @@ class BaseIoAdapter():
 
         return collected_bytes
 
+    def close(self):
+        """
+        Закрытие объекта ввода / вывода.
+        """
+        raise NotImplementedError
+
     def _read_byte(self):
         """
         Считывает один байт из буфера входящих данных
         """
-        raise NotImplementedError()
+        raise NotImplementedError
+
+    @property
+    def descriptor(self):
+        """
+        :rtype: int
+        """
+        raise NotImplementedError
 
 
 class ConsoleIOAdapter(BaseIoAdapter):
@@ -81,6 +94,9 @@ class ConsoleIOAdapter(BaseIoAdapter):
             here_sys.stdout.write(self._lines_delimiter)
         here_sys.stdout.flush()
 
+    def close(self):
+        pass
+
 import socket
 
 MAX_CONNECTIONS = 10
@@ -102,15 +118,22 @@ class SocketAdapter(BaseIoAdapter):
 
     @classmethod
     def initialize_server_socket(cls):
+        """
+        :rtype: socket.socket
+        """
         cls._server_socket = socket.socket()
-        hostname, port = socket.gethostname(), 8018
+        cls._server_socket.setblocking(0)
+        hostname, port = socket.gethostname(), 8019
         cls._server_socket.bind((hostname, port))
         print('Bound to %s at %d' % (hostname, port))
         cls._server_socket.listen(MAX_CONNECTIONS)
+        return cls._server_socket
 
     @classmethod
     def accept_connection_and_get_io_adapter(cls):
         """
+        Принимает соединение и возвращает объект с интерфейсом BaseIoAdapter осуществляющий обмен данными с сокетом.
+
         :rtype: BaseIoAdapter
         """
         if cls._server_socket is None:
@@ -118,6 +141,13 @@ class SocketAdapter(BaseIoAdapter):
 
         client_socket, _ = cls._server_socket.accept()
         return SocketAdapter(client_socket)
+
+    @property
+    def descriptor(self):
+        """
+        :rtype: int
+        """
+        return self._client_socket.fileno()
 
     def _read_byte(self):
         return self._client_socket.recv(1)
@@ -131,3 +161,6 @@ class SocketAdapter(BaseIoAdapter):
             data += self._binary_lines_delimiter
 
         self._client_socket.sendall(data)
+
+    def close(self):
+        self._client_socket.close()
