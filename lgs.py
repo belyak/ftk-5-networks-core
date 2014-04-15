@@ -81,9 +81,8 @@ def xinetd_io_loop():
 
 def standalone_io_loop():
     """
-    Цикл взаимоействия с пользователем в режиме серверного сокета.
+    Цикл взаимодействия с пользователем в режиме серверного сокета.
     """
-    # TODO: использовать неблокирующее чтение из множества сокетов
     import select
     SocketAdapter.initialize_server_socket()
 
@@ -91,11 +90,12 @@ def standalone_io_loop():
     server_socket = SocketAdapter._server_socket
     server_socket_descriptor = server_socket.fileno()
 
-    sockets_pool = [server_socket.fileno()]
+    sockets_pool = []
     user_sessions_data = {}
 
     while True:
-        r_list, w_list, e_list = select.select(sockets_pool, [], sockets_pool, 0)
+        r_list, w_list, e_list = select.select(sockets_pool + [server_socket_descriptor], [],
+                                               sockets_pool + [server_socket_descriptor], 0)
 
         if server_socket_descriptor in r_list:
             # серверный слушающий сокет появляется как готовый к чтению если можно принять соединение
@@ -103,6 +103,7 @@ def standalone_io_loop():
             fd = new_io_stream.descriptor
             sockets_pool.append(fd)
             user_sessions_data[fd] = GD.create(io_stream=new_io_stream)
+            print('Incoming connection. Currently %d %s' % (len(sockets_pool), sockets_pool))
 
         r_clients_list = (d for d in r_list if d != server_socket_descriptor)
         for descriptor in r_clients_list:
@@ -116,14 +117,22 @@ def standalone_io_loop():
                 # продолжим (или начнем) выполнение генератора (сопрограммы) отправив в него ранее сохраненные данные
                 blocking_read_callback = connection_context.io_callable
                 assert isinstance(blocking_read_callback, Callable)
+
                 # на момент необходимости получения генератором новых данных он вернет нам обратный вызов к сокету
                 # данные полученные из сокета сохраним в контексте.
                 incoming_data = blocking_read_callback()
+
+                if not len(incoming_data):
+                    # мы получили дескриптор как имеющий данные, однако данных нет. Вероятно сокет был закрыт клиентом
+                    # уберем его из пула.
+                    raise StopIteration()
+
                 connection_context.io_callable = session_coroutine.send(incoming_data)
             except StopIteration:
                 session_coroutine.close()
                 user_sessions_data.pop(descriptor)
                 sockets_pool.remove(descriptor)
+                print('Closed connection. Currently %d %s' % (len(sockets_pool), sockets_pool))
 
 
 if __name__ == '__main__':
