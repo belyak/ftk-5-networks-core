@@ -74,6 +74,7 @@ def xinetd_io_loop():
         data = None
         while True:
             blocking_read_callback = running_user_session.send(data)
+            """:type: collections.Callable"""
             data = blocking_read_callback()
     except StopIteration:
         running_user_session.close()
