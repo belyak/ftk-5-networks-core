@@ -1,5 +1,5 @@
 VERSION = 0.01
-HELLO_MSG = ('Text frequency analysis server v.%s ready.\n\r' % VERSION).encode()
+HELLO_MSG = 'Text frequency analysis server v.%s ready.' % VERSION
 
 CODE_OK = 200
 CODE_BAD_DATA = 400

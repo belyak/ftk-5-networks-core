@@ -13,7 +13,7 @@ def user_session(io_adapter):
     :type io_adapter: BaseIoAdapter
     """
     # начало сессии, выведем приветстие
-    io_adapter.write(HELLO_MSG)
+    io_adapter.write(create_message(200, HELLO_MSG))
 
     cmd = None
 
