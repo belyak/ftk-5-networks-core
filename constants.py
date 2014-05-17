@@ -1,3 +1,6 @@
+LINES_DELIMITER = '\r\n'
+B_LINES_DELIMITER = LINES_DELIMITER.encode()
+
 VERSION = 0.01
 HELLO_MSG = 'Text frequency analysis server v.%s ready.' % VERSION
 

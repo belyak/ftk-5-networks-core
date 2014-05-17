@@ -1,6 +1,7 @@
 ###
 ### Вспомогательные функции для преобразования данных
 ###
+from constants import LINES_DELIMITER
 
 
 def create_message(code, message, as_bytes=True):
@@ -15,13 +16,13 @@ def create_message(code, message, as_bytes=True):
     >>> create_message(200, "Status OK.")
     '200 Status OK.'
     """
-    one_line = '\n' not in message
+    one_line = LINES_DELIMITER not in message
 
     if one_line:
         line = '%d %s' % (code, message)
         return line.encode() if as_bytes else line
 
-    lines = message.split('\n')
+    lines = message.split(LINES_DELIMITER)
 
     first_line = lines[0]
     last_line = lines[-1]
@@ -33,6 +34,6 @@ def create_message(code, message, as_bytes=True):
     lines[-1] = processed_last_line
 
     if as_bytes:
-        return ('\n'.join(lines)).encode()
+        return (LINES_DELIMITER.join(lines)).encode()
     else:
-        return '\n'.join(lines)
+        return LINES_DELIMITER.join(lines)

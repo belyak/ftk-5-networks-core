@@ -1,4 +1,5 @@
 from unittest import TestCase
+from constants import LINES_DELIMITER
 
 from utils import create_message
 
@@ -14,13 +15,13 @@ class TestCreateMessage(TestCase):
 
     def test_create_message_multiple_lines(self):
         code = 200
-        text = '\n'.join([
+        text = LINES_DELIMITER.join([
             'line 1',
             'line 2',
             'line 3'
         ])
 
-        expected_result = '\n'.join([
+        expected_result = LINES_DELIMITER.join([
             '200-line 1',
             'line 2',
             '200 line 3'
