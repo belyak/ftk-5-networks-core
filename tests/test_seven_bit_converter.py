@@ -20,6 +20,15 @@ class SevenBitConverterTest(TestCase):
 
         self.assertEquals(self.decoded_7_bits, result_7bit)
 
+    def test_encode_non_divisible_case(self):
+        """
+        проверка кодирования сообщения не кратного 7 байтам
+        """
+        original_message = b'YES\r\n'
+        expected_decoded = bytes([44, 81, 42, 50, 1, 0, 26, 10])
+        decoded_result = self.converter.encode(original_message)
+        self.assertEquals(expected_decoded, decoded_result)
+
     def test_decode(self):
         """
         проверка декодирования 7бит в 8бит, кратный случай.

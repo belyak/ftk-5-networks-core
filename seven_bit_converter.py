@@ -39,7 +39,14 @@ class SevenBitConverter():
         result = []
         out_byte = 0
 
-        for ix, in_bit in enumerate(iterate_as_bits(normal_message)):
+        if len(normal_message) % 7 != 0:
+            # пробелы необходимые для вставки, чтобы сообщение стало кратным по длине 7 байтам:
+            spaces_to_fill = b' ' * (7 - (len(normal_message) % 7))
+            _normal_message = normal_message[:-2] + spaces_to_fill + normal_message[-2:]
+        else:
+            _normal_message = normal_message
+
+        for ix, in_bit in enumerate(iterate_as_bits(_normal_message)):
             bit_position = 6 - (ix % 7)
             out_byte += in_bit * self.bit_weight(bit_position)
             if bit_position == 0:
