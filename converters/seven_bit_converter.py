@@ -1,3 +1,6 @@
+from converters.abstract_converter import AbstractConverter
+
+
 def iterate_as_bits(in_bytes, with_ix=False):
     """
     итерирует через последовательность байт подавая на выход биты как десятичные 0 или 1
@@ -24,10 +27,12 @@ def significant_bits(in_bits):
         yield in_bit
 
 
-class SevenBitConverter():
+class SevenBitConverter(AbstractConverter):
     """
     Класс, преобразующий нормальный поток сервера в кодировку 7BM и обратно.n
     """
+
+    ENCODED_CHUNK_BYTES = 8
 
     def __init__(self):
         self.bit_weight = lambda n: 2**n  # вес бита

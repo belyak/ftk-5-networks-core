@@ -1,5 +1,6 @@
 from unittest import TestCase
-from seven_bit_converter import SevenBitConverter
+
+from converters.seven_bit_converter import SevenBitConverter
 
 
 class SevenBitConverterTest(TestCase):
