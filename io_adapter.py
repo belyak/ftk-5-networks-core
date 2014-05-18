@@ -1,5 +1,6 @@
 import os
 import sys as here_sys
+from seven_bit_converter import SevenBitConverter
 
 
 class BaseIoAdapter():
@@ -7,33 +8,44 @@ class BaseIoAdapter():
     _lines_delimiter = '\r\n'
 
     def __init__(self):
-        self.__possible_delimiters = '\n\r'.encode()
         self._binary_lines_delimiter = self._lines_delimiter.encode()
         self.delimiter_slice_start = -len(self._binary_lines_delimiter)
+        self.seven_bits_converter = SevenBitConverter()
 
     def set_encoding(self, encoding):
         pass
 
-    def write(self, data, line_break=True):
+    def write(self, data):
         """
         Записывает в поток данные и сбрасывает буфер.
 
         :type data: bytes
-        :type line_break: bool
+        """
+        full_data = data + self._binary_lines_delimiter
+        encoded_data = self.seven_bits_converter.encode(full_data)
+        return self._write(encoded_data)
+
+    def _write(self, data):
+        """
+        :param bytes data: данные для отправки клиенту
         """
         raise NotImplementedError()
 
     def read(self):
         """
-        считывает данные из буфеа ввода/вывода до повления символа переноса строки,
+        считывает данные из буфера ввода/вывода до повления символа переноса строки,
         затем возвращает последовательность байт, исключая перенос строки.
         :rtype: bytes
         """
         collected_bytes = b''
 
         while collected_bytes[self.delimiter_slice_start:] != self._binary_lines_delimiter:
-            in_byte = yield self._read_byte
-            collected_bytes += in_byte
+            message_part = b''
+            for _ in range(8):
+                in_byte = yield self._read_byte
+                message_part += in_byte
+
+            collected_bytes += self.seven_bits_converter.decode(message_part)
 
         return collected_bytes
 
@@ -84,14 +96,13 @@ class ConsoleIOAdapter(BaseIoAdapter):
         """
         return os.read(here_sys.stdin.fileno(), 1)
 
-    def write(self, data, line_break=True):
+    def write(self, data):
         """
         :type data: bytes
         :type line_break: bool
         """
         here_sys.stdout.write(data.decode(self.__encoding))
-        if line_break:
-            here_sys.stdout.write(self._lines_delimiter)
+        here_sys.stdout.write(self._lines_delimiter)
         here_sys.stdout.flush()
 
     def close(self):
@@ -123,7 +134,7 @@ class SocketAdapter(BaseIoAdapter):
         """
         cls._server_socket = socket.socket()
         cls._server_socket.setblocking(0)
-        hostname, port = socket.gethostname(), 8021
+        hostname, port = socket.gethostname(), 8022
         cls._server_socket.bind((hostname, port))
         print('Bound to %s at %d' % (hostname, port))
         cls._server_socket.listen(MAX_CONNECTIONS)
@@ -152,14 +163,10 @@ class SocketAdapter(BaseIoAdapter):
     def _read_byte(self):
         return self._client_socket.recv(1)
 
-    def write(self, data, line_break=True):
+    def _write(self, data):
         """
         :type data: bytes
-        :type line_break: bool
         """
-        if line_break:
-            data += self._binary_lines_delimiter
-
         self._client_socket.sendall(data)
 
     def close(self):
