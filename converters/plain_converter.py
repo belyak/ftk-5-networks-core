@@ -5,7 +5,7 @@ class PlainConverter(AbstractConverter):
     """
     Конвертер не изменяющий сообщения.
     """
-    ENCODED_CHUNK_BYTES = 1
+    ENCODED_CHUNK_LEN = 1
 
     def encode(self, normal_message):
         return normal_message

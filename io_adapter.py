@@ -1,6 +1,8 @@
 import os
 import sys as here_sys
-from seven_bit_converter import SevenBitConverter
+from converters.definitions import MODE_PLAIN, CONVERTER_BY_MODE
+
+from converters.seven_bit_converter import SevenBitConverter
 
 
 class BaseIoAdapter():
@@ -10,19 +12,20 @@ class BaseIoAdapter():
     def __init__(self):
         self._binary_lines_delimiter = self._lines_delimiter.encode()
         self.delimiter_slice_start = -len(self._binary_lines_delimiter)
-        self.seven_bits_converter = SevenBitConverter()
 
     def set_encoding(self, encoding):
         pass
 
-    def write(self, data):
+    def write(self, data, mode=MODE_PLAIN):
         """
         Записывает в поток данные и сбрасывает буфер.
 
         :type data: bytes
         """
         full_data = data + self._binary_lines_delimiter
-        encoded_data = self.seven_bits_converter.encode(full_data)
+        converter = CONVERTER_BY_MODE[mode]
+        """:type: AbstractConverter"""
+        encoded_data = converter.encode(full_data)
         return self._write(encoded_data)
 
     def _write(self, data):
@@ -31,7 +34,7 @@ class BaseIoAdapter():
         """
         raise NotImplementedError()
 
-    def read(self):
+    def read(self, mode=MODE_PLAIN):
         """
         считывает данные из буфера ввода/вывода до повления символа переноса строки,
         затем возвращает последовательность байт, исключая перенос строки.
@@ -39,13 +42,16 @@ class BaseIoAdapter():
         """
         collected_bytes = b''
 
+        converter = CONVERTER_BY_MODE[mode]
+        """:type: AbstractConverter"""
+
         while collected_bytes[self.delimiter_slice_start:] != self._binary_lines_delimiter:
             message_part = b''
-            for _ in range(8):
+            for _ in range(converter.ENCODED_CHUNK_LEN):
                 in_byte = yield self._read_byte
                 message_part += in_byte
 
-            collected_bytes += self.seven_bits_converter.decode(message_part)
+            collected_bytes += converter.decode(message_part)
 
         return collected_bytes
 
@@ -96,10 +102,9 @@ class ConsoleIOAdapter(BaseIoAdapter):
         """
         return os.read(here_sys.stdin.fileno(), 1)
 
-    def write(self, data):
+    def write(self, data, mode=MODE_PLAIN):
         """
         :type data: bytes
-        :type line_break: bool
         """
         here_sys.stdout.write(data.decode(self.__encoding))
         here_sys.stdout.write(self._lines_delimiter)

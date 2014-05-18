@@ -2,7 +2,7 @@ class AbstractConverter():
     """
     Базовый класс для всех конвертеров
     """
-    ENCODED_CHUNK_BYTES = None  # длина кодированного сообщения
+    ENCODED_CHUNK_LEN = None  # длина кодированного сообщения
     """:type: int"""
 
     def encode(self, normal_message):
