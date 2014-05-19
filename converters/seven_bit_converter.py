@@ -32,7 +32,7 @@ class SevenBitConverter(AbstractConverter):
     Класс, преобразующий нормальный поток сервера в кодировку 7BM и обратно.n
     """
 
-    ENCODED_CHUNK_BYTES = 8
+    ENCODED_CHUNK_LEN = 8
 
     def __init__(self):
         self.bit_weight = lambda n: 2**n  # вес бита
