@@ -1,6 +1,7 @@
 from constants import CODE_OK, MSG_PL_LINE_HAS_BEEN_COLLECTED, MSG_PT_TEXT_HAS_BEEN_COLLECTED, \
     MSG_CALCULATED_LINES_WORDS, MSG_STATISTICS_HAS_BEEN_LOADED, CODE_NOT_FOUND, ERR_STATISTICS_NOT_FOUND, \
     MSG_STATISTICS_HAS_BEEN_SAVED, ERR_ENCODING_NOT_FOUND, VERSION
+from converters.definitions import CONVERTER_BY_MODE
 from utils import create_message
 import commands_definitions as commands
 
@@ -147,6 +148,19 @@ def set_encoding(line_without_command, *args, **kwargs):
 
     return create_message(CODE_OK, 'Encoding has been set to "%s' % encoding_name)
 
+
+@command(keyword=commands.MODE)
+def set_mode(line_without_command, transfer_mode, *args, **kwargs):
+    """
+    :type transfer_mode: TransferMode
+    """
+    mode = line_without_command.decode()
+    if mode in CONVERTER_BY_MODE.keys():
+        transfer_mode.mode = mode
+    else:
+        return create_message(400, 'Mode `%s` is not supported!' % mode)
+
+    return create_message(200, 'Mode has been set to `%s`' % mode);
 
 @command(commands.EXIT)
 def close_session(*args, **kwargs):
