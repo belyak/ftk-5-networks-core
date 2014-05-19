@@ -33,6 +33,22 @@ class Statistics():
         self.__storage.data = dict(self.__statistics)
         return self.__storage.save(name)
 
+    def merge(self, name):
+        """
+        дополняет содержимое текущей статистики статистикой с именем name
+        """
+        try:
+            another_storage = self.__storage.load(name)
+        except StatisticsNotFound:
+            return False
+
+        another_statistics = another_storage.data
+        for word, count, in another_statistics.items():
+            self.__statistics[word] += count
+            self.__words_count += 1
+
+        return True
+
     @property
     def lines_count(self):
         return len(self.__lines)

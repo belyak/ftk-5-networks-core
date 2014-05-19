@@ -8,5 +8,5 @@ MODE_BASE64 = 'base64'
 CONVERTER_BY_MODE = {
     MODE_PLAIN: PlainConverter(),
     MODE_7BIT: SevenBitConverter(),
-    MODE_BASE64: None,
+    #MODE_BASE64: None,
 }

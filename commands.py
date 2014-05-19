@@ -1,6 +1,7 @@
 from constants import CODE_OK, MSG_PL_LINE_HAS_BEEN_COLLECTED, MSG_PT_TEXT_HAS_BEEN_COLLECTED, \
     MSG_CALCULATED_LINES_WORDS, MSG_STATISTICS_HAS_BEEN_LOADED, CODE_NOT_FOUND, ERR_STATISTICS_NOT_FOUND, \
-    MSG_STATISTICS_HAS_BEEN_SAVED, ERR_ENCODING_NOT_FOUND, VERSION
+    MSG_STATISTICS_HAS_BEEN_SAVED, ERR_ENCODING_NOT_FOUND, VERSION, MSG_STATISTICS_HAS_BEEN_MERGED, \
+    MSG_STATISTICS_TO_MERGE_NOT_FOUND
 from converters.definitions import CONVERTER_BY_MODE
 from utils import create_message
 import commands_definitions as commands
@@ -99,7 +100,7 @@ def print_stats(*args, **kwargs):
 
 
 ###
-### Команды сохранения и загрузки статистики
+### Команды сохранения, загрузки и соединения статистики
 ###
 
 
@@ -130,6 +131,18 @@ def store_statistics(line_without_command, *args, **kwargs):
 
     return create_message(code, msg)
 
+@command(keyword=commands.MERGE)
+def merge_statistics(line_without_command, *args, **kwargs):
+    statistics_to_merge_into_current = line_without_command.decode()
+    result = GD.statistics.merge(name=statistics_to_merge_into_current)
+    if result:
+        code = CODE_OK
+        msg = MSG_STATISTICS_HAS_BEEN_MERGED % statistics_to_merge_into_current
+    else:
+        code = CODE_NOT_FOUND
+        msg = MSG_STATISTICS_TO_MERGE_NOT_FOUND % statistics_to_merge_into_current
+
+    return create_message(code, msg)
 
 ###
 ### Служебные команды - завершение сеанса, получение версии сервера, установка кодировки текста.

@@ -21,4 +21,7 @@ ERR_STATISTICS_NOT_FOUND = 'Statistics "%s" not found!'
 
 MSG_STATISTICS_HAS_BEEN_SAVED = 'Statistics "%s" has been saved'
 
+MSG_STATISTICS_HAS_BEEN_MERGED = 'Statistics "%s" has been merge into current'
+MSG_STATISTICS_TO_MERGE_NOT_FOUND = 'Statistics "%s" has not been loaded!!!'
+
 ERR_COMMAND_NOT_RECOGNIZED = 'Command cannot be recognized!'

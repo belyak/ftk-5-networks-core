@@ -2,6 +2,7 @@ from collections import Callable
 import commands
 import commands_definitions
 from constants import HELLO_MSG, CODE_BAD_DATA, ERR_COMMAND_NOT_RECOGNIZED
+from converters.transfer_mode import TransferMode
 from io_adapter import ConsoleIOAdapter, SocketAdapter
 from persistent_statistics import FilePersistentStatistics
 from statistics import Statistics
@@ -17,21 +18,28 @@ def user_session(io_adapter):
 
     cmd = None
 
+    transfer_mode = TransferMode()
+
     while cmd != commands_definitions.EXIT:
         # читаем одну строку из входящих данных:
-        line = yield from io_adapter.read()
+        line = yield from io_adapter.read(transfer_mode.mode)
+        """:type: bytes"""
         # перебираем все зарегистрированные команды:
         for cmd, callback, in commands.COMMANDS:
             bin_cmd = cmd.encode()
             cmd_len = len(bin_cmd)
             if line[:cmd_len] == bin_cmd:
-                message = callback(line_without_command=line[cmd_len + 1:io_adapter.delimiter_slice_start])
-                io_adapter.write(message)
+                callback_kwargs = {
+                    'line_without_command': line[cmd_len + 1:io_adapter.delimiter_slice_start].rstrip(b' '),
+                    'transfer_mode': transfer_mode,
+                }
+                message = callback(**callback_kwargs)
+                io_adapter.write(message, transfer_mode.mode)
                 break
         else:
             # 'это условие выполниться только если цикл завершится нормально, т.е. без break
             message = create_message(CODE_BAD_DATA, ERR_COMMAND_NOT_RECOGNIZED)
-            io_adapter.write(message)
+            io_adapter.write(message, transfer_mode.mode)
 
     io_adapter.close()
 
