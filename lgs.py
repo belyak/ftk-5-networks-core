@@ -1,4 +1,5 @@
 from collections import Callable
+from banner_message import BannerMessage
 import commands
 import commands_definitions
 from constants import HELLO_MSG, CODE_BAD_DATA, ERR_COMMAND_NOT_RECOGNIZED
@@ -14,7 +15,7 @@ def user_session(io_adapter):
     :type io_adapter: BaseIoAdapter
     """
     # начало сессии, выведем приветстие
-    io_adapter.write(create_message(200, HELLO_MSG))
+    io_adapter.write(create_message(200, BannerMessage.get()))
 
     cmd = None
 
