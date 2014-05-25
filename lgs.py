@@ -2,7 +2,7 @@ from collections import Callable
 from banner_message import BannerMessage
 import commands
 import commands_definitions
-from constants import HELLO_MSG, CODE_BAD_DATA, ERR_COMMAND_NOT_RECOGNIZED
+from constants import CODE_BAD_DATA, ERR_COMMAND_NOT_RECOGNIZED
 from converters.transfer_mode import TransferMode
 from io_adapter import ConsoleIOAdapter, SocketAdapter
 from persistent_statistics import FilePersistentStatistics
@@ -61,16 +61,12 @@ class ClientConnectionContext():
         self.io_callable = self.session_coroutine.send(self.incoming_data)
 
 
-class GlobalData:
-    count = 0
-    current_encoding = 'utf-8'
-    statistics = Statistics(storage=FilePersistentStatistics(name='current'))
-
-    @classmethod
-    def create(cls, io_stream):
-        return ClientConnectionContext(io_stream)
-
-GD = GlobalData
+# class GlobalData:
+#     count = 0
+#     current_encoding = 'utf-8'
+#     statistics = Statistics(storage=FilePersistentStatistics(name='current'))
+#
+# GD = GlobalData
 
 
 def xinetd_io_loop():
@@ -112,7 +108,7 @@ def standalone_io_loop():
             new_io_stream = SocketAdapter.accept_connection_and_get_io_adapter()
             fd = new_io_stream.descriptor
             sockets_pool.append(fd)
-            user_sessions_data[fd] = GD.create(io_stream=new_io_stream)
+            user_sessions_data[fd] = ClientConnectionContext(io_stream=new_io_stream)
             print('Incoming connection. Currently %d %s' % (len(sockets_pool), sockets_pool))
 
         r_clients_list = (d for d in r_list if d != server_socket_descriptor)
