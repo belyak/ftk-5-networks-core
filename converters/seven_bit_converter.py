@@ -1,7 +1,7 @@
 from converters.abstract_converter import AbstractConverter
 
 
-def iterate_as_bits(in_bytes, with_ix=False):
+def iterate_as_bits(in_bytes):
     """
     итерирует через последовательность байт подавая на выход биты как десятичные 0 или 1
     >>> list(iterate_as_bits(bytes([17])))
