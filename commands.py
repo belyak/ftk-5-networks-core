@@ -60,23 +60,6 @@ def put_line(line_without_command, *args, **kwargs):
     msg = MSG_PL_LINE_HAS_BEEN_COLLECTED % GD.statistics.lines_count
     return create_message(CODE_OK, msg)
 
-
-@command(keyword=commands.PUT_TEXT)
-def put_text(line_without_command, *args, **kwargs):
-    separator = line_without_command
-    lines_collected = 0
-    last_line = False
-    while not last_line:
-        in_line = io_stream.read()
-        separator_position = in_line.find(separator)
-        if separator_position != -1:
-            in_line = in_line[:separator_position]
-            last_line = True
-        GD.statistics.put_line(in_line.decode(GD.current_encoding))
-        lines_collected += 1
-    msg = MSG_PT_TEXT_HAS_BEEN_COLLECTED % (lines_collected, GD.statistics.lines_count)
-    return create_message(CODE_OK, msg)
-
 ###
 ### Команды расчета и получения статистики
 ###
