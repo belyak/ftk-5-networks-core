@@ -71,6 +71,7 @@ def xinetd_io_loop():
     io_stream = ConsoleIOAdapter()
     single_context = ClientConnectionContext(io_stream=io_stream)
     running_user_session = single_context.session_coroutine
+    commands.GD.set_context(single_context)
     try:
         data = single_context.io_callable()
 
