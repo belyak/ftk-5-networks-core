@@ -61,6 +61,7 @@ class ClientConnectionContext():
         # чтобы когда в сокете будут входящие клиентские данные, выполнить его.
         self.session_coroutine = user_session(io_stream)
         self.io_callable = self.session_coroutine.send(self.incoming_data)
+        """:type: collections.Callable"""
 
 
 def xinetd_io_loop():
@@ -71,7 +72,8 @@ def xinetd_io_loop():
     single_context = ClientConnectionContext(io_stream=io_stream)
     running_user_session = single_context.session_coroutine
     try:
-        data = None
+        data = single_context.io_callable()
+
         while True:
             blocking_read_callback = running_user_session.send(data)
             """:type: collections.Callable"""
@@ -138,15 +140,15 @@ def standalone_io_loop():
 
 if __name__ == '__main__':
 
-    MODE_XINET = 'xinet'
+    MODE_XINETD = 'xinetd'
     MODE_STANDALONE = 'standalone'
 
     parser = OptionParser()
-    parser.add_option("-m", "--mode", choices=[MODE_XINET, MODE_STANDALONE], default=MODE_STANDALONE, dest="mode")
+    parser.add_option("-m", "--mode", choices=[MODE_XINETD, MODE_STANDALONE], default=MODE_STANDALONE, dest="mode")
     (options, args) = parser.parse_args()
 
 
-    if options.mode == MODE_XINET:
+    if options.mode == MODE_XINETD:
         # режим работы под управлением xinetd - ioloop запускается один раз с консольным вводом/выводом
         xinetd_io_loop()
 

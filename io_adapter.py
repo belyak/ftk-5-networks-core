@@ -1,5 +1,5 @@
 import os
-import sys as here_sys
+import sys
 from converters.definitions import MODE_PLAIN, CONVERTER_BY_MODE
 
 
@@ -98,18 +98,23 @@ class ConsoleIOAdapter(BaseIoAdapter):
         """
         :rtype: bytes
         """
-        return os.read(here_sys.stdin.fileno(), 1)
+        in_byte = os.read(sys.stdin.fileno(), 1)
+        return in_byte
 
     def write(self, data, mode=MODE_PLAIN):
         """
         :type data: bytes
         """
-        here_sys.stdout.write(data.decode(self.__encoding))
-        here_sys.stdout.write(self._lines_delimiter)
-        here_sys.stdout.flush()
+        sys.stdout.write(data.decode(self.__encoding))
+        sys.stdout.write(self._lines_delimiter)
+        sys.stdout.flush()
 
     def close(self):
         pass
+
+    @property
+    def descriptor(self):
+        return 1
 
 import socket
 
