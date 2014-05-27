@@ -68,7 +68,8 @@ def xinetd_io_loop():
     Цикл взаимодейстивия с пользователем в режиме xinetd сервиса
     """
     io_stream = ConsoleIOAdapter()
-    running_user_session = user_session(io_stream)
+    single_context = ClientConnectionContext(io_stream=io_stream)
+    running_user_session = single_context.session_coroutine
     try:
         data = None
         while True:
