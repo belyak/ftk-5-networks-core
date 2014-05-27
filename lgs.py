@@ -1,4 +1,6 @@
 from collections import Callable
+from optparse import OptionParser
+
 from banner_message import BannerMessage
 import commands
 import commands_definitions
@@ -59,14 +61,6 @@ class ClientConnectionContext():
         # чтобы когда в сокете будут входящие клиентские данные, выполнить его.
         self.session_coroutine = user_session(io_stream)
         self.io_callable = self.session_coroutine.send(self.incoming_data)
-
-
-# class GlobalData:
-#     count = 0
-#     current_encoding = 'utf-8'
-#     statistics = Statistics(storage=FilePersistentStatistics(name='current'))
-#
-# GD = GlobalData
 
 
 def xinetd_io_loop():
@@ -146,12 +140,14 @@ if __name__ == '__main__':
     MODE_XINET = 'xinet'
     MODE_STANDALONE = 'standalone'
 
-    # mode = MODE_XINET
-    mode = MODE_STANDALONE
+    parser = OptionParser()
+    parser.add_option("-m", "--mode", choices=[MODE_XINET, MODE_STANDALONE], default=MODE_STANDALONE, dest="mode")
+    (options, args) = parser.parse_args()
 
-    if mode == MODE_XINET:
+
+    if options.mode == MODE_XINET:
         # режим работы под управлением xinetd - ioloop запускается один раз с консольным вводом/выводом
         xinetd_io_loop()
 
-    elif mode == MODE_STANDALONE:
+    elif options.mode == MODE_STANDALONE:
         standalone_io_loop()
