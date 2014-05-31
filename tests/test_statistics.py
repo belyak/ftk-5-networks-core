@@ -18,6 +18,16 @@ class TestStatistics(TestCase):
 
         self.assertEqual(self.statistics.lines_count, lines_count)
 
+    def test_words_count(self):
+
+        words_count = 5
+
+        for line in ('wordOne wordTwo', 'wordThree wordFour', 'wordFive'):
+            self.statistics.put_line(line)
+
+        self.statistics.calc()
+        self.assertEquals(self.statistics.words_count, words_count)
+
     def test_calc(self):
         for line in TEST_TEXT.split('\n'):
             self.statistics.put_line(line)

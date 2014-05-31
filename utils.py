@@ -14,7 +14,7 @@ def create_message(code, message, as_bytes=True):
 
     :rtype: str or bytes
     >>> create_message(200, "Status OK.")
-    '200 Status OK.'
+    b'200 Status OK.'
     """
     one_line = LINES_DELIMITER not in message
 
