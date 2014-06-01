@@ -29,7 +29,7 @@ def significant_bits(in_bits):
 
 class SevenBitConverter(AbstractConverter):
     """
-    Класс, преобразующий нормальный поток сервера в кодировку 7BM и обратно.n
+    Класс, преобразующий нормальный поток сервера в кодировку 7BM и обратно.
     """
 
     ENCODED_CHUNK_LEN = 8
@@ -39,13 +39,15 @@ class SevenBitConverter(AbstractConverter):
 
     def encode(self, normal_message):
         """
-        :param bytes normal_message: сообщение которое требуется перекодировать в последовательность 7BM
+        :param bytes normal_message: сообщение которое требуется перекодировать
+        в последовательность 7BM
         """
         result = []
         out_byte = 0
 
         if len(normal_message) % 7 != 0:
-            # пробелы необходимые для вставки, чтобы сообщение стало кратным по длине 7 байтам:
+            # пробелы необходимые для вставки, чтобы сообщение стало кратным по
+            # длине 7 байтам:
             spaces_to_fill = b' ' * (7 - (len(normal_message) % 7))
             _normal_message = normal_message[:-2] + spaces_to_fill + normal_message[-2:]
         else:
@@ -62,7 +64,8 @@ class SevenBitConverter(AbstractConverter):
 
     def decode(self, seven_bit_message):
         """
-        :param bytes seven_bit_message: закодированное сообщение, которое требуется декодировать.
+        :param bytes seven_bit_message: закодированное сообщение,
+        которое требуется декодировать.
         """
         result = []
         out_byte = 0

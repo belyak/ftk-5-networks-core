@@ -1,12 +1,17 @@
-from constants import (CODE_OK, MSG_PL_LINE_HAS_BEEN_COLLECTED, MSG_PT_TEXT_HAS_BEEN_COLLECTED,
-                       MSG_CALCULATED_LINES_WORDS, MSG_STATISTICS_HAS_BEEN_LOADED, CODE_NOT_FOUND,
-                       ERR_STATISTICS_NOT_FOUND, MSG_STATISTICS_HAS_BEEN_SAVED, ERR_ENCODING_NOT_FOUND,
-                       VERSION, MSG_STATISTICS_HAS_BEEN_MERGED, MSG_STATISTICS_TO_MERGE_NOT_FOUND)
+from constants import (CODE_OK, MSG_PL_LINE_HAS_BEEN_COLLECTED,
+                       MSG_CALCULATED_LINES_WORDS,
+                       MSG_STATISTICS_HAS_BEEN_LOADED, CODE_NOT_FOUND,
+                       ERR_STATISTICS_NOT_FOUND, MSG_STATISTICS_HAS_BEEN_SAVED,
+                       ERR_ENCODING_NOT_FOUND, VERSION,
+                       MSG_STATISTICS_HAS_BEEN_MERGED,
+                       MSG_STATISTICS_TO_MERGE_NOT_FOUND)
+
 from converters.definitions import CONVERTER_BY_MODE
 from utils import create_message
 import commands_definitions as commands
 
-# список, в котором после импорта этого модуля будут все коданды и их обработчики
+# список, в котором после импорта этого модуля будут собранв все коданды и их
+# обработчики
 COMMANDS = []
 
 
@@ -27,12 +32,10 @@ class GD:
 def command(keyword=None):
     """
     Декоратор, регистрирует функцию в качестве обработчика команды.
-    :param keyword: команда
+
+    :param keyword: мнемоника команды
     :type keyword: str
     """
-    if keyword is None:
-        return lambda a: a
-
     def wrapper(fn):
         COMMANDS.append((keyword, fn))
         return fn
@@ -68,7 +71,8 @@ def put_line(line_without_command, *args, **kwargs):
 @command(keyword=commands.CALC)
 def calc(*args, **kwargs):
     GD.statistics.calc()
-    msg = MSG_CALCULATED_LINES_WORDS % (GD.statistics.lines_count, GD.statistics.words_count)
+    msg = MSG_CALCULATED_LINES_WORDS % (GD.statistics.lines_count,
+                                        GD.statistics.words_count)
     return create_message(CODE_OK, msg)
 
 
@@ -110,25 +114,26 @@ def store_statistics(line_without_command, *args, **kwargs):
         code = CODE_OK
         msg = MSG_STATISTICS_HAS_BEEN_SAVED % statistics_name
     else:
-        raise NotImplementedError('False Statistics.save() result handling is not implemented yet!')
+        msg = 'False Statistics.save() result handling is not implemented yet!'
+        raise NotImplementedError(msg)
 
     return create_message(code, msg)
 
 @command(keyword=commands.MERGE)
 def merge_statistics(line_without_command, *args, **kwargs):
-    statistics_to_merge_into_current = line_without_command.decode()
-    result = GD.statistics.merge(name=statistics_to_merge_into_current)
+    statistics_to_merge_with = line_without_command.decode()
+    result = GD.statistics.merge(name=statistics_to_merge_with)
     if result:
         code = CODE_OK
-        msg = MSG_STATISTICS_HAS_BEEN_MERGED % statistics_to_merge_into_current
+        msg = MSG_STATISTICS_HAS_BEEN_MERGED % statistics_to_merge_with
     else:
         code = CODE_NOT_FOUND
-        msg = MSG_STATISTICS_TO_MERGE_NOT_FOUND % statistics_to_merge_into_current
+        msg = MSG_STATISTICS_TO_MERGE_NOT_FOUND % statistics_to_merge_with
 
     return create_message(code, msg)
 
 ###
-### Служебные команды - завершение сеанса, получение версии сервера, установка кодировки текста.
+### Служебные команды - завершение сеанса, получение версии сервера
 ###
 
 
@@ -142,7 +147,8 @@ def set_encoding(line_without_command, *args, **kwargs):
 
     GD.current_encoding = encoding_name
 
-    return create_message(CODE_OK, 'Encoding has been set to "%s' % encoding_name)
+    return create_message(CODE_OK,
+                          'Encoding has been set to "%s' % encoding_name)
 
 
 @command(keyword=commands.MODE)

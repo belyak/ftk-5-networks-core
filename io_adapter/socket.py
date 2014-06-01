@@ -39,7 +39,8 @@ class SocketAdapter(BaseIoAdapter):
     @classmethod
     def accept_connection_and_get_io_adapter(cls):
         """
-        Принимает соединение и возвращает объект с интерфейсом BaseIoAdapter осуществляющий обмен данными с сокетом.
+        Принимает соединение и возвращает объект с интерфейсом BaseIoAdapter
+        осуществляющий обмен данными с сокетом.
 
         :rtype: io_adapter.base.BaseIoAdapter
         """

@@ -9,9 +9,6 @@ class BaseIoAdapter():
         self._binary_lines_delimiter = self._lines_delimiter.encode()
         self.delimiter_slice_start = -len(self._binary_lines_delimiter)
 
-    def set_encoding(self, encoding):
-        pass
-
     def write(self, data, mode=MODE_PLAIN):
         """
         Записывает в поток данные и сбрасывает буфер.

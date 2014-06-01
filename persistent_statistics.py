@@ -32,7 +32,8 @@ class PersistentStatistics():
     def load(cls, name):
         """
         Загрузка статистики.
-        В случае невозможности загрузить статистику с именем name возбуждает исключение StatisticsNotFound
+        В случае невозможности загрузить статистику с именем name возбуждает
+        исключение StatisticsNotFound
         :param name: имя статистики
         :type name: str
         :raises: StatisticsNotFound
@@ -42,11 +43,13 @@ class PersistentStatistics():
 
     def save(self, name=None):
         """
-        Сохранение статистики под указанным именем, либо под текущим, если имя не указано.
-        В случае сохранения под новым именем имя статистики изменяется, т.е. в дальнейшем класс работает с новым набором
-        данных старый набор данных остается без изменений.
+        Сохранение статистики под указанным именем, либо под текущим, если имя
+        не указано. В случае сохранения под новым именем имя статистики изменяется,
+        т.е. в дальнейшем класс работает с новым набором данных, а старый набор
+        данных остается без изменений.
 
-        :param name: Имя, под которым будет сохранена статистика, текущее если не указано
+        :param name: Имя, под которым будет сохранена статистика, текущее
+        если не указано
         :type name: str or None
         """
         raise NotImplementedError()
@@ -54,6 +57,9 @@ class PersistentStatistics():
 
 def statistics_name_to_filename(name):
     """
+    Функция преобразования названия статистики к имени файла.
+    Имя файла составляется из пути к каталогу с сохраненными статистиками,
+    md5 хэш суммы от названия статистики и расширения '.json'.
     :type name: str
     :rtype; str
     """
@@ -63,18 +69,18 @@ def statistics_name_to_filename(name):
 
 class FilePersistentStatistics(PersistentStatistics):
     """
-    Реализация сохранения статистике в файловой системе
+    Реализация сохранения статистики в файловой системе
     """
     @classmethod
     def load(cls, name):
         filename = statistics_name_to_filename(name)
         try:
-            with open(filename, 'r') as f:
+            with open(filename, 'rb') as f:
                 contents = f.read()
         except FileNotFoundError:
             raise StatisticsNotFound(name)
 
-        data = json.loads(contents)
+        data = json.loads(contents.decode())
 
         return FilePersistentStatistics(name, data)
 
@@ -82,8 +88,8 @@ class FilePersistentStatistics(PersistentStatistics):
         if name is not None:
             self._name = name
         filename = statistics_name_to_filename(self._name)
-        contents = json.dumps(self.data, ensure_ascii=False)
-        with open(filename, 'w') as f:
+        contents = json.dumps(self.data, ensure_ascii=False).encode()
+        with open(filename, 'wb') as f:
             f.write(contents)
 
         return True

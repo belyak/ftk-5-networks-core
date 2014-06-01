@@ -14,7 +14,8 @@ class AbstractConverter():
 
     def decode(self, encoded_message):
         """
-        :param bytes encoded_message: закодированное сообщение, которое требуется декодировать.
+        :param bytes encoded_message: закодированное сообщение, которое
+        требуется декодировать.
         :rtype: bytes
         """
         raise NotImplementedError()

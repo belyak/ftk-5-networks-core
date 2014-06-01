@@ -1,6 +1,5 @@
 import os
 import sys
-from converters.definitions import MODE_PLAIN
 from io_adapter.base import BaseIoAdapter
 
 
@@ -8,19 +7,9 @@ class ConsoleIOAdapter(BaseIoAdapter):
     """
     Адаптер ввода-вывода
     использует stdin / stdout
-
     """
-
     def __init__(self):
         super().__init__()
-        self.__encoding = 'utf-8'
-
-    def set_encoding(self, encoding):
-        """
-        Устанавливает кодировку вывода в поток.
-        Вызов влияет только на консольный режим работы приложения.
-        """
-        self.__encoding = encoding
 
     def _read_byte(self):
         """
@@ -29,12 +18,11 @@ class ConsoleIOAdapter(BaseIoAdapter):
         in_byte = os.read(sys.stdin.fileno(), 1)
         return in_byte
 
-    def write(self, data, mode=MODE_PLAIN):
+    def _write(self, data):
         """
         :type data: bytes
         """
-        sys.stdout.write(data.decode(self.__encoding))
-        sys.stdout.write(self._lines_delimiter)
+        sys.stdout.buffer.write(data)
         sys.stdout.flush()
 
     def close(self):
